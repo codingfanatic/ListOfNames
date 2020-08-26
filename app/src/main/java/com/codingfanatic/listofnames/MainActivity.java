@@ -10,9 +10,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import
+//import com.firebase.ui.database.FirebaseListAdapter;
 import android.view.View;
-import
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -20,12 +19,14 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
-    private ListView mListView;
+    ListView mListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mListView = (ListView) findViewById(R.id.list_view);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
 
@@ -53,8 +54,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-         // Find the ListView
-         mListView = (ListView) findViewById(R.id.list_view);
 
          // Now set the adapter with a given layout
          mListView.setAdapter(new FirebaseListAdapter<Person>(this, Person.class,
