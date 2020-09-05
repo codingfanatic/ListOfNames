@@ -1,69 +1,80 @@
 package com.codingfanatic.listofnames;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.annotations.Nullable;
 //import com.firebase.ui.database.FirebaseListAdapter;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
+    //1. Instantiated ListView and ArrayList objects
     ListView mListView;
+    ArrayList<String> mArrayList = new ArrayList<>();
+    DatabaseReference myRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mListView = (ListView) findViewById(R.id.list_view);
+        //2. Instantiated ArrayAdapter using Activity, list_listview xml layout, and ArrayList object
+        //3. Assigned reference to ListView object using List View layout from activity_main xml layout
+        //   Set Adapter for the ListView object
+        final ArrayAdapter<String> mArrayAdapter = new ArrayAdapter<String>(this, R.layout.list_listview, mArrayList);
+        
+        mListView = (ListView) findViewById(R.id.list_view1);
+        mListView.setAdapter(mArrayAdapter);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        //4. Assigned a reference to the DatabaseReference object
+        myRef = FirebaseDatabase.getInstance().getReference();
 
-        /*
-         * Create a DatabaseReference to the data; works with standard DatabaseReference methods
-         * like limitToLast() and etc.
-         */
-        DatabaseReference myRef = database.getReference().child("message");
-
-        //myRef.setValue("I want to read this into my app");
-
-        myRef.addValueEventListener(new ValueEventListener() {
+        //5. Add a Child Event Listener to the DatabaseReference object
+        myRef.addChildEventListener(new ChildEventListener() {
+            
+            //6. Override the onChildAdded method for the ChildEventListener for the DatabaseReference object
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-                Log.d(TAG, "Value is: " + value);
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                String value = snapshot.getValue(String.class);
+                mArrayList.add(value);
+                mArrayAdapter.notifyDataSetChanged();
             }
         
             @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                mArrayAdapter.notifyDataSetChanged();
+            }
+        
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+        
+            }
+        
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+        
+            }
+        
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+        
             }
         });
-
-
-         // Now set the adapter with a given layout
-         mListView.setAdapter(new FirebaseListAdapter<Person>(this, Person.class,
-                 R.layout.list_listview, myRef) {
- 
-             // Populate view as needed
-             protected void populateView(View view, Person person, int position) {
-                 ((TextView) view.findViewById(android.R.id.text1)).setText(person.getName());
-             }
-         });
-
     }
 }
